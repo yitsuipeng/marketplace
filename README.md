@@ -1,4 +1,5 @@
-# multi-service_app
+# Marketplace
+It's a mock second-hand e-commerce webside. Built with microservice concept.
 
 ## documentation
 ### Resource Types
