@@ -8,7 +8,7 @@ spec:
     matchLabels:
       app: auth
   template:
-    matadata:
+    metadata:
       labels:
         app: auth
     spec:
