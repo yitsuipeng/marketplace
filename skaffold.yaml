@@ -24,3 +24,11 @@ build:
         manual:
           - src: '**/*.ts'
             dest: .
+    - image: yitsuipeng/items
+      context: items
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/**/*.ts'
+            dest: .

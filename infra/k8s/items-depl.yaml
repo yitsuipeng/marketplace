@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-depl
+  name: items-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: items
   template:
     metadata:
       labels:
-        app: auth
+        app: items
     spec:
       containers:
-        - name: auth
-          image: yitsuipeng/auth
+        - name: items
+          image: yitsuipeng/items
           env:
             - name: MONGO_URI
-              value: 'mongodb://auth-mongo-srv:27017/auth'
+              value: 'mongodb://items-mongo-srv:27017/items'
             - name: JWT_KEY
               valueFrom:
                 secretKeyRef:
@@ -27,12 +27,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth-srv
+  name: items-srv
 spec:
   selector:
-    app: auth
+    app: items
   ports:
-    - name: auth
+    - name: items
       protocol: TCP
       port: 3000
       targetPort: 3000
