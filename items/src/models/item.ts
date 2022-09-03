@@ -16,27 +16,30 @@ interface ItemModel extends mongoose.Model<ItemDoc> {
     build(attrs: ItemAttrs): ItemDoc;
 }
 
-const itemSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true
-    },
-    price: {
-        type: Number,
-        required: true
-    },
-    userId: {
-        type: String,
-        required: true
-    }
-}, {
-    toJSON: {
-        transform(doc, ret) {
-          ret.id = ret._id;
-          delete ret._id;
+const itemSchema = new mongoose.Schema(
+    {
+        title: {
+            type: String,
+            required: true
+        },
+        price: {
+            type: Number,
+            required: true
+        },
+        userId: {
+            type: String,
+            required: true
+        }
+    }, 
+    {
+        toJSON: {
+            transform(doc, ret) {
+            ret.id = ret._id;
+            delete ret._id;
+            }
         }
     }
-});
+);
 
 itemSchema.statics.build = (attrs: ItemAttrs) => {
     return new Item(attrs);

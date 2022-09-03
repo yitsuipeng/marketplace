@@ -6,6 +6,7 @@ import { errorHandler, NotFoundError, currentUser } from '@ytmarketplace/common'
 import { createItemRouter } from './routes/new';
 import { showItemRouter } from './routes/show';
 import { indexItemRouter } from './routes';
+import { updateItemRouter } from './routes/update';
 
 const app = express();
 app.set('trust proxy', true);
@@ -21,6 +22,7 @@ app.use(currentUser);
 app.use(createItemRouter);
 app.use(showItemRouter);
 app.use(indexItemRouter);
+app.use(updateItemRouter);
 
 app.all('*', async (req, res) => {
   throw new NotFoundError();
