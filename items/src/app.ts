@@ -5,6 +5,7 @@ import cookieSession from 'cookie-session';
 import { errorHandler, NotFoundError, currentUser } from '@ytmarketplace/common';
 import { createItemRouter } from './routes/new';
 import { showItemRouter } from './routes/show';
+import { indexItemRouter } from './routes';
 
 const app = express();
 app.set('trust proxy', true);
@@ -19,6 +20,7 @@ app.use(currentUser);
 
 app.use(createItemRouter);
 app.use(showItemRouter);
+app.use(indexItemRouter);
 
 app.all('*', async (req, res) => {
   throw new NotFoundError();
