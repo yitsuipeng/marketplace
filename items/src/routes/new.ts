@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import { body } from 'express-validator';
 import { requireAuth, validateRequest } from '@ytmarketplace/common';
 import { Item } from '../models/item';
+import { ItemCreatedPublisher } from '../events/publishers/item-created-publisher';
+import { natsWrapper } from '../nats-wrapper';
 
 const router = express.Router();
 
@@ -15,12 +17,18 @@ router.post('/api/items',
 	async (req: Request, res: Response) => {
 		const { title, price } = req.body;
 
-    const item = Item.build({
-			title,
-			price,
-			userId: req.currentUser!.id
-		});
+		const item = Item.build({
+				title,
+				price,
+				userId: req.currentUser!.id
+			});
 		await item.save();
+		await new ItemCreatedPublisher(natsWrapper.client).publish({
+			id: item.id,
+			title: item.title,
+			price: item.price,
+			userId: item.userId
+		});
 
 		res.status(201).send(item);
 	}
