@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import { app } from '../../app';
+import { Item } from '../../models/item';
 import { natsWrapper } from '../../nats-wrapper';
 
 it('returns a 404 if the provided id does not exist', async () => {
@@ -126,4 +127,29 @@ it('publishes an event', async () => {
 		.expect(200);
 	
 	expect(natsWrapper.client.publish).toHaveBeenCalled();
+});
+
+it('rejects updates if the item is reserved', async () => {
+	const cookie = global.signin();
+
+	const response = await request(app)
+		.post('/api/items')
+		.set('Cookie', cookie)
+		.send({
+			title: 'asdfjkl;',
+			price: 20
+		});
+
+	const item = await Item.findById(response.body.id);
+	item!.set({ orderId: new mongoose.Types.ObjectId().toHexString() });
+	await item!.save();
+
+	await request(app)
+		.put(`/api/items/${response.body.id}`)
+		.set('Cookie', cookie)
+		.send({
+			title: 'new title',
+			price: 100
+		})
+		.expect(400);
 });

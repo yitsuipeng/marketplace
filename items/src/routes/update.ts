@@ -4,7 +4,8 @@ import {
 	requireAuth, 
 	validateRequest,
 	NotFoundError,
-	NotAuthorizedError
+	NotAuthorizedError,
+	BadRequestError
 } from '@ytmarketplace/common';
 import { Item } from '../models/item';
 import { ItemUpdatedPublisher } from '../events/publishers/item-updated-publisher';
@@ -25,6 +26,10 @@ router.put(
 	
 		if (!item) {
 			throw new NotFoundError();
+		}
+
+		if (item.orderId) {
+			throw new BadRequestError('Cannot edit a reserved item');
 		}
 
 		if (item.userId !== req.currentUser!.id) {

@@ -1,21 +1,21 @@
-import { Listener, OrderCreatedEvent, Subjects } from "@ytmarketplace/common";
+import { Listener, OrderCancelledEvent, Subjects } from "@ytmarketplace/common";
 import { Message } from "node-nats-streaming";
 import { queueGroupName } from "./queue-group-name";
 import { Item } from "../../models/item";
 import { ItemUpdatedPublisher } from "../publishers/item-updated-publisher";
 
-export class OrderCreatedListener extends Listener<OrderCreatedEvent> {
-    subject: Subjects.OrderCreated = Subjects.OrderCreated;
+export class OrderCancelledListener extends Listener<OrderCancelledEvent> {
+    subject: Subjects.OrderCancelled = Subjects.OrderCancelled;
     queueGroupName = queueGroupName;
     
-    async onMessage(data: OrderCreatedEvent['data'], msg: Message) {
+    async onMessage(data: OrderCancelledEvent['data'], msg: Message) {
         const item = await Item.findById(data.item.id);
 
         if (!item) {
             throw new Error('Item not found');
         }
 
-        item.set({ orderId: data.id });
+        item.set({ orderId: undefined });
 
         await item.save();
         new ItemUpdatedPublisher(this.client).publish({
@@ -25,7 +25,7 @@ export class OrderCreatedListener extends Listener<OrderCreatedEvent> {
             userId: item.userId,
             orderId: item.orderId,
             version: item.version
-        })
+        });
 
         msg.ack();
     }

@@ -1,30 +1,27 @@
 import { Message } from "node-nats-streaming";
 import mongoose from "mongoose";
-import { OrderCreatedEvent, OrderStatus } from "@ytmarketplace/common";
-import { OrderCreatedListener } from "../order-created-listener";
+import { OrderCancelledEvent, OrderStatus } from "@ytmarketplace/common";
+import { OrderCancelledListener } from "../order-cancelled-listener";
 import { natsWrapper } from "../../../nats-wrapper";
 import { Item } from "../../../models/item";
 
 const setup = async () => {
-    const listener = new OrderCreatedListener(natsWrapper.client);
+    const listener = new OrderCancelledListener(natsWrapper.client);
 
+    const orderId = new mongoose.Types.ObjectId().toHexString();
     const item = Item.build({
         title: 'product',
         price: 99,
         userId: 'asdfjkl'
     });
-
+    item.set({ orderId });
     await item.save();
 
-    const data: OrderCreatedEvent['data'] = {
-        id: new mongoose.Types.ObjectId().toHexString(),
+    const data: OrderCancelledEvent['data'] = {
+        id: orderId,
         version: 0,
-        status: OrderStatus.Created,
-        userId: 'asdfjkl',
-        expiresAt: 'asdfjkl',
         item: {
-            id: item.id,
-            price: item.price
+            id: item.id
         }
     };
 
@@ -56,34 +53,16 @@ const setup = async () => {
         }
     };
 
-    return { listener, item, data, msg };
-}
+    return { listener, item, data, msg, orderId };
+};
 
-it('sets the userId of the item', async () => {
-    const { listener, item, data, msg } = await setup();
+it('updates the item, publishes an event, and acks the message', async () => {
+    const { listener, item, data, msg, orderId } = await setup();
 
     await listener.onMessage(data, msg);
 
     const updatedItem = await Item.findById(item.id);
-
-    expect(updatedItem!.orderId).toEqual(data.id);
-});
-
-it('acks the message', async () => {
-    const { listener, item, data, msg } = await setup();
-    await listener.onMessage(data, msg);
-
+    expect(updatedItem!.orderId).not.toEqual(data.id);
     expect(msg.ack).toHaveBeenCalled();
-});
-
-it('publishes an item updated event', async () => {
-    const { listener, item, data, msg } = await setup();
-
-    await listener.onMessage(data, msg);
-
     expect(natsWrapper.client.publish).toHaveBeenCalled();
-
-    const itemUpdatedData = JSON.parse((natsWrapper.client.publish as jest.Mock).mock.calls[0][1]);
-
-    expect(data.id).toEqual(itemUpdatedData.orderId);
 });
