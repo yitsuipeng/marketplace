@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { updateIfCurrentPlugin } from 'mongoose-update-if-current';
 import { Order, OrderStatus } from './order';
 
 interface ItemAttrs {
@@ -10,11 +11,16 @@ interface ItemAttrs {
 export interface ItemDoc extends mongoose.Document {
   title: string;
   price: number;
+  version: number;
   isReserved(): Promise<boolean>;
 }
 
 interface ItemModel extends mongoose.Model<ItemDoc> {
   build(attrs: ItemAttrs): ItemDoc;
+  findByEvent(event: { 
+    id: string; 
+    version: number; 
+  }): Promise<ItemDoc | null>;
 }
 
 const itemSchema = new mongoose.Schema(
@@ -39,6 +45,15 @@ const itemSchema = new mongoose.Schema(
   }
 );
 
+itemSchema.set('versionKey', 'version');
+itemSchema.plugin(updateIfCurrentPlugin);
+
+itemSchema.statics.findByEvent = (event: { id: string, version: number }) => {
+  return Item.findOne({
+    _id: event.id,
+    version: event.version - 1
+  })
+}
 itemSchema.statics.build = (attrs: ItemAttrs) => {
   return new Item({
     _id: attrs.id,
@@ -49,7 +64,7 @@ itemSchema.statics.build = (attrs: ItemAttrs) => {
 
 itemSchema.methods.isReserved = async function() {
   const existingOrder = await Order.findOne({
-    item: this,
+    item: this as any,
     status: {
       $in: [
         OrderStatus.Created,

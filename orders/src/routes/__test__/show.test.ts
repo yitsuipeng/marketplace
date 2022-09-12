@@ -1,9 +1,11 @@
+import mongoose from 'mongoose';
 import request from 'supertest';
 import { app } from '../../app';
 import { Item } from '../../models/item';
 
 it('fetches the order', async () => {
     const item = Item.build({
+        id: new mongoose.Types.ObjectId().toHexString(),
         title: 'product',
         price: 20
     });
@@ -28,6 +30,7 @@ it('fetches the order', async () => {
 
 it('returns an error if one user tries to fetch another users order', async () => {
     const item = Item.build({
+        id: new mongoose.Types.ObjectId().toHexString(),
         title: 'product',
         price: 20
     });

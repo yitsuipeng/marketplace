@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import request from 'supertest';
 import { app } from '../../app';
 import { Item } from '../../models/item';
@@ -6,6 +7,7 @@ import { natsWrapper } from '../../nats-wrapper';
 
 it('marks an order as cancelled', async () => {
     const item = Item.build({
+        id: new mongoose.Types.ObjectId().toHexString(),
         title: 'product',
         price: 20
     });
@@ -32,6 +34,7 @@ it('marks an order as cancelled', async () => {
 
 it('emits an order cancelled event', async () => {
     const item = Item.build({
+        id: new mongoose.Types.ObjectId().toHexString(),
         title: 'product',
         price: 20
     });

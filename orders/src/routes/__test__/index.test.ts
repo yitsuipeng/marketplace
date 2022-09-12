@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import request from 'supertest';
 import { app } from '../../app';
 import { Order, OrderStatus } from '../../models/order';
@@ -5,6 +6,7 @@ import { Item } from '../../models/item';
 
 const buildItem = async () => {
     const item = Item.build({
+        id: new mongoose.Types.ObjectId().toHexString(),
         title: 'product',
         price: 20
     });
